@@ -10,12 +10,12 @@ class Entity {
    * Это могут быть счета или доходы/расходы
    * (в зависимости от того, что наследуется от Entity)
    * */
-  static list(data, callback){
+  static list( data, callback = f => f ) {
     return createRequest({
-      data, 
-      method: 'GET', 
-      url: this.URL, 
-      responseType: 'json', 
+      url: this.URL,
+      method: 'GET',
+      responseType: 'json',
+      data,
       callback
     });
   }
@@ -25,12 +25,26 @@ class Entity {
    * на сервер. (в зависимости от того,
    * что наследуется от Entity)
    * */
-  static create(data, callback) {
+  static create( data, callback = f => f ) {
     return createRequest({
-      data: data, 
-      method: 'POST', 
-      url: this.URL, 
-      responseType: 'json', 
+      url: this.URL,
+      method: 'POST',
+      responseType: 'json',
+      data: Object.assign({ _method: 'PUT' }, data ),
+      callback
+    });
+  }
+
+  /**
+   * Получает информацию о счёте или доходе/расходе
+   * (в зависимости от того, что наследуется от Entity)
+   * */
+  static get( id = '', data, callback = f => f ) {
+    return createRequest({
+      url: this.URL + '/' + id,
+      data: data,
+      method: 'GET',
+      responseType: 'json',
       callback
     });
   }
@@ -39,13 +53,15 @@ class Entity {
    * Удаляет информацию о счёте или доходе/расходе
    * (в зависимости от того, что наследуется от Entity)
    * */
-  static remove(data, callback ) {
+  static remove( id = '', data, callback = f => f ) {
     return createRequest({
-      data: data, 
-      method: 'POST', 
-      url: this.URL + '/', 
-      responseType: 'json', 
+      url: this.URL,
+      data: Object.assign({ _method: 'DELETE' }, { id: id }, data ),
+      method: 'POST',
+      responseType: 'json',
       callback
     });
   }
 }
+
+Entity.URL = '';
