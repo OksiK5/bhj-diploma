@@ -31,17 +31,20 @@ class AccountsWidget {
    * вызывает AccountsWidget.onSelectAccount()
    * */
   registerEvents() {
-    const createAccountBtn = this.element.querySelector(".create-account");
-    createAccountBtn.addEventListener("click", () => {
-      App.getModal("createAccount").open();
-    });
+    this.element.addEventListener( 'click', e => {
+      e.preventDefault();
+      const createAccount = e.target.closest( '.create-account' );
 
-    const accountItems = this.element.querySelectorAll(".account");
-    accountItems.forEach((item) => {
-      item.addEventListener("click", (event) => {
-        event.preventDefault();
-        this.onSelectAccount(item);
-      });
+      if ( createAccount ) {
+        const modal = App.getModal( 'createAccount' );
+        return modal.open();
+      }
+
+      const selectedAccount = e.target.closest( '.account' );
+
+      if ( selectedAccount ) {
+        this.onSelectAccount( selectedAccount );
+      }
     });
   }
 
@@ -56,17 +59,19 @@ class AccountsWidget {
    * метода renderItem()
    * */
   update() {
-    const currentUser = User.current();
-    if (currentUser) {
-      Account.list(currentUser, (err, response) => {
-        if (err) {
-          console.error(err);
-          return;
-        }
-        this.clear();
-        this.renderItem(response.data);
-      });
+    if ( !User.current()) {
+      return;
     }
+    Account.list(User.current(), ( err, response ) => {
+      if ( err ) {
+        return;
+      }
+      if ( !response.data ) {
+        return;
+      }
+      this.clear();
+      this.renderItem( response.data );
+    });
   }
 
   /**
@@ -75,8 +80,7 @@ class AccountsWidget {
    * в боковой колонке
    * */
   clear() {
-    const accountList = this.element.querySelector(".sidebar-menu");
-    accountList.innerHTML = "";
+    [...this.element.querySelectorAll( '.account' )].forEach( item => item.remove());
   }
 
   /**
@@ -87,14 +91,26 @@ class AccountsWidget {
    * Вызывает App.showPage( 'transactions', { account_id: id_счёта });
    * */
   onSelectAccount( element ) {
-  const activeAccount = this.element.querySelector(".account.active");
-    if (activeAccount) {
-      activeAccount.classList.remove("active");
+    if ( this.currentAccountId ) {
+      const account = this.element
+          .querySelector( `.account[data-id="${this.currentAccountId}"]` );
+      if (account) {
+        account.classList.remove( 'active' );
+      }
+      else {
+        this.currentAccountId = null;
+      }
     }
-    element.classList.add("active");
 
-    const accountId = element.dataset.accountId;
-    App.showPage("transactions", { account_id: accountId });
+    element.classList.add( 'active' );
+
+    const { id } = element.dataset;
+
+    this.currentAccountId = id;
+
+    App.showPage( 'transactions', {
+      account_id: id
+    });
   }
 
   /**
@@ -102,13 +118,12 @@ class AccountsWidget {
    * отображения в боковой колонке.
    * item - объект с данными о счёте
    * */
-  getAccountHTML(item) {
+  getAccountHTML( item ) {
     return `
-      <li class="account" data-account-id="${item.id}">
-        <a href="#">
-          <span>${item.name}</span> /
-          <span>${item.sum} ₽</span>
-        </a>
+      <li class="account" data-id="${ item.id }">
+          <a href="#">
+              ${ item.name } / ${ item.sum } ₽
+          </a>
       </li>
     `;
   }
@@ -119,11 +134,14 @@ class AccountsWidget {
    * AccountsWidget.getAccountHTML HTML-код элемента
    * и добавляет его внутрь элемента виджета
    * */
-  renderItem(data){
-    const accountList = this.element.querySelector(".sidebar-menu");
-    data.forEach((item) => {
-      const accountHTML = this.getAccountHTML(item);
-      accountList.insertAdjacentHTML("beforeend", accountHTML);
+  renderItem( data ) {
+    data.forEach( item => {
+      const {name, id} = item,
+          sum = item.sum.toLocaleString('en'),
+          html = this.getAccountHTML({
+            name, id, sum
+          });
+      this.element.insertAdjacentHTML('beforeend', html);
     });
   }
 }
