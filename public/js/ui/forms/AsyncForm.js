@@ -41,12 +41,11 @@ class AsyncForm {
    * }
    * */
   getData() {
-    const formData = new FormData(this.element);
-    const data = {};
-    for (let [name, value] of formData.entries()) {
-      data[name] = value;
-    }
-    return data;
+    return [... ( new FormData( this.element )).entries()]
+    .reduce(( target, [ key, value ]) => {
+      target[ key ] = value;
+      return target;
+    }, {});
   }
 
   onSubmit(options){
@@ -59,6 +58,6 @@ class AsyncForm {
    * */
   submit() {
     const data = this.getData();
-    this.onSubmit(data);
+    this.onSubmit({data});
   }
 }
