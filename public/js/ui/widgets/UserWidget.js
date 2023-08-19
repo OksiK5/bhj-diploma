@@ -25,11 +25,13 @@ class UserWidget {
    * в элемент .user-name устанавливает имя
    * авторизованного пользователя
    * */
-  update(){
-    User.current((err, user) => {
-      if (user) {
-        this.element.querySelector('.user-name').textContent = user.name;
-      }
-    });
+  update() {
+    const user = User.current();
+    if ( !user ) {
+      return;
+    }
+    const name = this.element.querySelector( '.user-name' );
+
+    name.textContent = user.name;
   }
 }
