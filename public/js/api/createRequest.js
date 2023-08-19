@@ -3,48 +3,61 @@
  * на сервер.
  * */
 const createRequest = (options = {}) => {
-    const request = new XMLHttpRequest();
-    request.withCredentials = true;
-    request.responseType = options.responseType;
-  
-    const { method = 'GET', url, data, callback } = options;
-  
-    let requestData = null;
-  
-    if (method === 'GET') {
-      const queryString = new URLSearchParams(data).toString();
-      requestData = `${url}${queryString ? `?${queryString}` : ''}`;
-  
-      try {
-        if (requestData) {
-          request.open(method, requestData, true);
-          request.send();
-        }
-      } catch (e) {
-        callback(e);
-      }
-    } else {
-      const formData = new FormData();
-  
-      for (const key in data) {
-        formData.append(key, data[key]);
-      }
-  
-      try {
-        request.open(method, url, true);
-        request.send(formData);
-      } catch (e) {
-        callback(e);
-      }
-    }
-  
-    request.addEventListener('readystatechange', () => {
-      if (request.readyState === request.DONE && request.status === 200) {
-        const err = null;
-        const response = request.response;
-        callback(err, response);
-      }
-    });
-  
-    return request;
-  };
+	const f = function() {},
+		{
+			method = 'GET',
+			headers = {},
+			success = f,
+			error = f,
+			callback = f,
+			responseType,
+			async = true,
+			data = {}
+		} = options,
+		xhr = new XMLHttpRequest;
+
+	let {
+		url
+	} = options;
+
+	let requestData;
+	if (responseType) {
+		xhr.responseType = responseType;
+	}
+	xhr.onload = function() {
+		success.call(this, xhr.response);
+		callback.call(this, null, xhr.response);
+	};
+	xhr.onerror = function() {
+		const err = new Error('Request Error');
+		error.call(this, err);
+		callback.call(this, err);
+	};
+
+	xhr.withCredentials = true;
+
+	if (method === 'GET') {
+		const urlParams = Object.entries(data)
+			.map(([key, value]) => `${key}=${value}`)
+			.join('&');
+		if (urlParams) {
+			url += '?' + urlParams;
+		}
+	} else {
+		requestData = Object.entries(data)
+			.reduce((target, [key, value]) => {
+				target.append(key, value);
+				return target;
+			}, new FormData);
+	}
+	try {
+		xhr.open(method, url, async);
+		xhr.send(requestData);
+	} catch (err) {
+		error.call(this, err);
+		callback.call(this, err);
+		return xhr;
+	}
+
+	return xhr;
+};
