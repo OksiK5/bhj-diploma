@@ -6,6 +6,7 @@
  * для последующей обработки
  * */
 class AsyncForm {
+  
   /**
    * Если переданный элемент не существует,
    * необходимо выкинуть ошибку.
@@ -13,7 +14,11 @@ class AsyncForm {
    * через registerEvents()
    * */
   constructor(element) {
-
+    if (!element) {
+      throw new Error('Элемент не существует');
+    }
+    this.element = element;
+    this.registerEvents();
   }
 
   /**
@@ -21,8 +26,12 @@ class AsyncForm {
    * вызывает метод submit()
    * */
   registerEvents() {
-
+    this.element.addEventListener('submit', (event) => {
+      event.preventDefault();
+      this.submit();
+    });
   }
+  
 
   /**
    * Преобразует данные формы в объект вида
@@ -32,7 +41,12 @@ class AsyncForm {
    * }
    * */
   getData() {
-
+    const formData = new FormData(this.element);
+    const data = {};
+    for (let [name, value] of formData.entries()) {
+      data[name] = value;
+    }
+    return data;
   }
 
   onSubmit(options){
@@ -44,6 +58,7 @@ class AsyncForm {
    * данные, полученные из метода getData()
    * */
   submit() {
-
+    const data = this.getData();
+    this.onSubmit(data);
   }
 }
