@@ -18,11 +18,11 @@ class Sidebar {
    * при нажатии на кнопку .sidebar-toggle
    * */
   static initToggleButton() {
-    const toggleButton = document.querySelector('.sidebar-toggle');
-    toggleButton.addEventListener('click', (e) => {
-      e.preventDefault();
-      document.body.classList.toggle('sidebar-open');
-      document.body.classList.toggle('sidebar-collapse');
+    const toggle = document.querySelector( '.sidebar-toggle' ),
+        sidebar = document.querySelector( '.sidebar-mini' );
+    toggle.addEventListener( 'click', () => {
+      sidebar.classList.toggle( 'sidebar-open' );
+      sidebar.classList.toggle( 'sidebar-collapse' );
     });
   }
 
@@ -34,48 +34,21 @@ class Sidebar {
    * выходу устанавливает App.setState( 'init' )
    * */
   static initAuthLinks() {
-    const registerModal = App.getModal('register');
-    const loginModal = App.getModal('login');
+    const loginLink = document.querySelector( '.menu-item_login a' ),
+        registerLink = document.querySelector( '.menu-item_register a' ),
+        logoutLink = document.querySelector( '.menu-item_logout a' ),
 
-    document.querySelector('.menu-item_register a').addEventListener('click', (e) => {
-      e.preventDefault();
-      registerModal.open();
-    });
+        loginModal = App.getModal( 'login' ),
+        registerModal = App.getModal( 'register' );
 
-    document.querySelector('.menu-item_login a').addEventListener('click', (e) => {
-      e.preventDefault();
-      loginModal.open();
-    });
-
-    document.querySelector('.menu-item_logout a').addEventListener('click', (e) => {
-      e.preventDefault();
-      User.logout((err, response) => {
-        if (!err && response.success) {
-          App.setState('init');
-        }
-      });
-    });
-
-  //   const loginButton = document.querySelector('.login-button');
-  //   const registerButton = document.querySelector('.register-button');
-  //   const logoutButton = document.querySelector('.logout-button');
-
-  //   loginButton.addEventListener('click', () => {
-  //     const loginModal = App.getModal('login');
-  //     loginModal.open();
-  //   });
-
-  //   registerButton.addEventListener('click', () => {
-  //     const registerModal = App.getModal('register');
-  //     registerModal.open();
-  //   });
-
-  //   logoutButton.addEventListener('click', () => {
-  //     User.logout((err, response) => {
-  //       if (!err && response.success) {
-  //         App.setState('init');
-  //       }
-  //     });
-  //   });
+    loginLink.addEventListener( 'click', () => loginModal.open());
+    registerLink.addEventListener( 'click', () => registerModal.open());
+    logoutLink.addEventListener( 'click', () =>
+        User.logout({}, ( err, response ) => {
+          if ( response && response.success ) {
+            App.setState( 'init' );
+          }
+        })
+    );
   }
 }
